@@ -82,20 +82,6 @@ open class TableParser: RestorableBlockParser {
     self.docParser.copyState(&savedState)
     
     while let r = self.parseRow() {
-      // Store current state before checking next line
-      var currentState = DocumentParserState(self.docParser)
-      self.docParser.copyState(&currentState)
-      self.readNextLine()
-      
-      if self.isAlignmentRow() {
-        // We found a new table pattern, so restore state to before this row
-        self.docParser.restoreState(currentState)
-        break
-      } else {
-        // Not a new table, restore state and continue with the row we parsed
-        self.docParser.restoreState(currentState)
-      }
-      
       var row = r
       // Remove cells if parsed row has too many
       if row.count > header.count {
@@ -107,7 +93,27 @@ open class TableParser: RestorableBlockParser {
         }
       }
       rows.append(row)
+      
+      // Store current state before reading next line
+      var currentState = DocumentParserState(self.docParser)
+      self.docParser.copyState(&currentState)
       self.readNextLine()
+      
+      // Check if the next row might be a new table header
+      if let nextRow = self.parseRow() {
+        var nextState = DocumentParserState(self.docParser)
+        self.docParser.copyState(&nextState)
+        self.readNextLine()
+        
+        if self.isAlignmentRow() {
+          // We found a new table pattern, so restore state to before the potential header
+          self.docParser.restoreState(currentState)
+          break
+        } else {
+          // Not a new table, restore state to continue parsing
+          self.docParser.restoreState(nextState)
+        }
+      }
     }
     return .block(.table(header, alignments, rows))
   }

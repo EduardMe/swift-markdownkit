@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:swift-markdownkit}",
+      "name": "Debug MarkdownKitProcess",
+      "program": "${workspaceFolder:swift-markdownkit}/.build/debug/MarkdownKitProcess",
+      "preLaunchTask": "swift: Build Debug MarkdownKitProcess"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:swift-markdownkit}",
+      "name": "Release MarkdownKitProcess",
+      "program": "${workspaceFolder:swift-markdownkit}/.build/release/MarkdownKitProcess",
+      "preLaunchTask": "swift: Build Release MarkdownKitProcess"
+    }
+  ]
+}
