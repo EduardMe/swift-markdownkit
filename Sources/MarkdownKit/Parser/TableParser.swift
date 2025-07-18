@@ -76,7 +76,29 @@ open class TableParser: RestorableBlockParser {
     }
     self.readNextLine()
     var rows = Rows()
+    
+    // Store the current position to check for new table patterns
+    let savedPosition = self.position
+    
     while let r = self.parseRow() {
+      // Check if the next line might be an alignment row (indicating a new table)
+      let currentPosition = self.position
+      self.readNextLine()
+      
+      if self.isAlignmentRow() {
+        // We found a new table pattern, so restore position and stop parsing this table
+        self.restorePosition(savedPosition)
+        self.readNextLine()
+        // Restore to just before the new table header
+        while self.position < currentPosition {
+          self.readNextLine()
+        }
+        break
+      } else {
+        // Not a new table, continue parsing rows
+        self.restorePosition(currentPosition)
+      }
+      
       var row = r
       // Remove cells if parsed row has too many
       if row.count > header.count {
@@ -91,6 +113,36 @@ open class TableParser: RestorableBlockParser {
       self.readNextLine()
     }
     return .block(.table(header, alignments, rows))
+  }
+  
+  /// Check if the current line looks like an alignment row
+  private func isAlignmentRow() -> Bool {
+    guard let row = self.parseRow() else {
+      return false
+    }
+    
+    // Check if all cells in the row match the alignment pattern
+    for cell in row {
+      guard case .some(.text(let str)) = cell.first, str.count > 0 else {
+        return false
+      }
+      
+      // Check if this cell matches the alignment row pattern
+      var check = str
+      if str.first == ":" {
+        check = str[str.index(after: str.startIndex)..<str.endIndex]
+      }
+      if check.count > 0 && check.last == ":" {
+        check = check[check.startIndex..<check.index(before: check.endIndex)]
+      }
+      
+      // All remaining characters should be dashes
+      if !check.allSatisfy(isDash) {
+        return false
+      }
+    }
+    
+    return true
   }
   
   open func parseRow() -> Row? {
