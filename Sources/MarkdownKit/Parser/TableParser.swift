@@ -77,26 +77,23 @@ open class TableParser: RestorableBlockParser {
     self.readNextLine()
     var rows = Rows()
     
-    // Store the current position to check for new table patterns
-    let savedPosition = self.position
+    // Store the current state to check for new table patterns
+    var savedState = DocumentParserState(self.docParser)
+    self.docParser.copyState(&savedState)
     
     while let r = self.parseRow() {
-      // Check if the next line might be an alignment row (indicating a new table)
-      let currentPosition = self.position
+      // Store current state before checking next line
+      var currentState = DocumentParserState(self.docParser)
+      self.docParser.copyState(&currentState)
       self.readNextLine()
       
       if self.isAlignmentRow() {
-        // We found a new table pattern, so restore position and stop parsing this table
-        self.restorePosition(savedPosition)
-        self.readNextLine()
-        // Restore to just before the new table header
-        while self.position < currentPosition {
-          self.readNextLine()
-        }
+        // We found a new table pattern, so restore state to before this row
+        self.docParser.restoreState(currentState)
         break
       } else {
-        // Not a new table, continue parsing rows
-        self.restorePosition(currentPosition)
+        // Not a new table, restore state and continue with the row we parsed
+        self.docParser.restoreState(currentState)
       }
       
       var row = r
