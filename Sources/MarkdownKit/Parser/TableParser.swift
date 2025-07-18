@@ -81,6 +81,12 @@ open class TableParser: RestorableBlockParser {
     var savedState = DocumentParserState(self.docParser)
     self.docParser.copyState(&savedState)
     
+    // Check if the current line is empty or we're at the end
+    // If so, we have a valid table with just header and no data rows
+    if self.lineEmpty || self.finished {
+      return .block(.table(header, alignments, rows))
+    }
+    
     while let r = self.parseRow() {
       var row = r
       // Remove cells if parsed row has too many
