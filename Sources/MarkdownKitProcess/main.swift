@@ -100,7 +100,7 @@ if CommandLine.arguments.count == 2 {
 
 for (sourceUrl, optTargetUrl) in sourceTarget {
   if let textContent = try? String(contentsOf: sourceUrl) {
-    let markdownContent = MarkdownParser.standard.parse(textContent)
+    let markdownContent = ExtendedMarkdownParser.standard.parse(textContent)
     let htmlContent = HtmlGenerator.standard.generate(doc: markdownContent)
     if let targetUrl = optTargetUrl {
       if fileManager.fileExists(atPath: targetUrl.path) {

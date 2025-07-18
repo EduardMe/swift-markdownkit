@@ -44,6 +44,17 @@ class ExtendedMarkdownBlockTests: XCTestCase, MarkdownKitFactory {
                                                                      [.undefined, .undefined])))
   }
   
+  func testHeaderOnlyTable() {
+    // Test case from user: table with only header and alignment rows
+    XCTAssertEqual(parseBlocks("| 213 | 123 | 123 |\n| --- | --- | --- |"), 
+                   document(table(["213", "123", "123"],
+                                  [.undefined, .undefined, .undefined])))
+    // With trailing newline
+    XCTAssertEqual(parseBlocks("| 213 | 123 | 123 |\n| --- | --- | --- |\n"), 
+                   document(table(["213", "123", "123"],
+                                  [.undefined, .undefined, .undefined])))
+  }
+  
   func testComplexTable() {
     XCTAssertEqual(parseBlocks(" | col A | col B | col C | \n" +
                                "-| :--- |----: |   \n" +
@@ -497,6 +508,7 @@ class ExtendedMarkdownBlockTests: XCTestCase, MarkdownKitFactory {
   static let allTests = [
     ("testBlockParserCounts", testBlockParserCounts),
     ("testMinimalTable", testMinimalTable),
+    ("testHeaderOnlyTable", testHeaderOnlyTable),
     ("testComplexTable", testComplexTable),
     ("testComplexWrappedTable", testComplexWrappedTable),
     ("testTableTermination", testTableTermination),
